@@ -2,7 +2,21 @@ from setuptools import setup
 import versioneer
 
 requirements = [
-    # package requirements go here
+  'pandas',
+  'xarray',
+  'scikit-learn',
+  'statsmodels',
+  'dask',
+  'numba',
+  'pyepsg',
+  'geopandas',
+  'holoviews',
+  'hvplot',
+  'matplotlib',
+  'bokeh',
+  'geoviews',
+  'ipyleaflet',
+  'spatialpandas',
 ]
 
 setup(
