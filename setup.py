@@ -1,9 +1,30 @@
 from setuptools import setup
 import versioneer
 
-requirements = [
-    # package requirements go here
+default_requirements = [
+    # data
+    'pandas',
+    'xarray',
+    'scikit-learn',
+    'statsmodels',
+    'dask',
+    'numba',
+    # visualization
+    'pyepsg',
+    'geopandas',
+    'holoviews',
+    'hvplot',
+    'matplotlib',
+    'bokeh',
+    'geoviews'
 ]
+
+conda_forge_requirements = [
+    'ipyleaflet',
+    'spatialpandas'
+]
+
+requirements = default_requirements + conda_forge_requirements
 
 setup(
     name='pyiwfm',

@@ -1,4 +1,4 @@
-name: env_c2vsim
+name: env_iwfm
 
 channels:
   - defaults
