@@ -15,7 +15,8 @@ These are a set of utilties to visualize the input and output for that model
 Installing
 ------------
 
-Miniconda_ is required. After installing
+Miniconda_ is required. After installing, clone this repository and change directory to it. That will 
+allow the commands below to access the environment.yml file that is needed to setup the environment.
 
 ::
 
