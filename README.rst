@@ -18,6 +18,7 @@ Installing
 Miniconda_ is required. After installing
 
 ::
+
     conda config --set channel_priority strict
     conda env create -f environment.yml
 
@@ -28,6 +29,7 @@ The environment will be named env_iwfm by default and will contain all the depen
 Finally, clone this directory and change directory to it and install it as follows
 
 ::
+
     conda activate env_iwfm
     pip install -e .
 
@@ -35,6 +37,7 @@ Finally, clone this directory and change directory to it and install it as follo
 To confirm installation 
 
 ::
+
     conda activate env_iwfm 
     pyiwfm --version
 
@@ -50,12 +53,14 @@ From the command line
 Ensure that environment is activated
 
 ::
+
     conda activate env_iwfm
 
 
 To get help on commands and sub-commands
 
 ::
+
     pyiwfm --help
 
     usage: pyiwfm [-h] [-V] {trimesh-animator,head-obs-nodes} ...
@@ -105,6 +110,7 @@ Groundwater Heads Observations vs Node Plotter displays the observation wells as
 and displays nearby model node heads along with observed values in a plot
 
 ::
+
     pyiwfm head-obs-nodes --help
     usage: pyiwfm head-obs-nodes [-h] --elements-file ELEMENTS_FILE --nodes-file
                                 NODES_FILE --strat-file STRAT_FILE --head-file
