@@ -103,6 +103,7 @@ Trimesh Animator displays the groundwater head elevations/depths on a map
     --head-file HEAD_FILE
                             path to heads-all.out file
 
+.. image:: docs/images/trimesh-animator-snapshot.jpg
 
 Groundwater Head Observations vs Node Plotter
 .............................................
@@ -133,12 +134,14 @@ and displays nearby model node heads along with observed values in a plot
     --measurements-file MEASUREMENTS_FILE
                             path to groundwater periodic measurements file
 
+.. image:: docs/images/head-obs-nodes-snapshot.jpg
+
 Groundwater head at nodes
 .........................
 
 The nodes are displayed as dots on the map and click on them shows a plot of the head
 
-** Use Shift + Mouse Clicks to select multiple nodes and overlay their groundwater heads **
+**Use Shift + Mouse Clicks to select multiple nodes and overlay their groundwater heads**
 
 ::
 
@@ -156,3 +159,5 @@ The nodes are displayed as dots on the map and click on them shows a plot of the
                             path to stratigraphy.dat file
     --head-file HEAD_FILE
                             path to heads-all.out file
+
+.. image:: docs/images/head-nodes-snapshot.jpg
