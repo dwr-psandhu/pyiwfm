@@ -88,8 +88,8 @@ def cli(args=None):
     parser_gwh_nodes.set_defaults(func=start_gwh_nodes)
     # Now call the appropriate response.
     pargs = p.parse_args(args)
-    return pargs.func(pargs)
-
+    pargs.func(pargs)
+    return 
 
 if __name__ == '__main__':
     import sys

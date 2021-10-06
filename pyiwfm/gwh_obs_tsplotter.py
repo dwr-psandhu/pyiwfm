@@ -9,7 +9,7 @@ import param
 # imports for geometry
 import shapely
 from holoviews import opts
-
+from . import obsreader
 import pyiwfm
 
 pn.extension()
@@ -24,7 +24,7 @@ def ensure_version(verstr, min_ver):
         assert(minor) >= min_minor
 
 
-#ensure_version(gpd.__version__, '0.8.1')  # crs doesn't work correctly before this
+# ensure_version(gpd.__version__, '0.8.1')  # crs doesn't work correctly before this
 
 
 def get_points_within(gnodes, gdfs, distance=5000):
@@ -40,16 +40,11 @@ def get_gwh_at_nodes(nodeids, gwh, layer=0):
 
 def get_gw_depth_at_nodes(nodeids, gwh, strat, layer=0):
     dfheads = get_gwh_at_nodes(nodeids, gwh, layer)
-    return strat.loc[nodeids, 'GSE'].values.T-dfheads
-
-
-def load_and_merge_observations(gdfs, file):
-    dfobs = pd.read_csv(file)
-    return dfobs.join(gdfs, on='STN_ID', rsuffix='OBS_')
+    return strat.loc[nodeids, 'GWE'].values.T - dfheads
 
 
 def get_obs_for_stn_id(dfobs, stn_id):
-    dfx = dfobs[dfobs['STN_ID'] == stn_id].copy()
+    dfx = dfobs[dfobs['SITE_CODE'] == stn_id].copy()
     dfx.index = pd.to_datetime(dfx['MSMT_DATE'])
     return dfx
 
@@ -67,7 +62,7 @@ class Plotter(param.Parameterized):
         self.gnodes = gpd.GeoDataFrame(self.grid_data.nodes.copy(), geometry=[
             shapely.geometry.Point(v) for v in self.grid_data.nodes.values], crs='EPSG:26910')
         self.stations = self.load_obs_stations(stations_file)
-        self.measurements = load_and_merge_observations(self.stations, measurements_file)
+        self.measurements = obsreader.load_and_merge_observations(self.stations, measurements_file)
 
         self.node_map = self.stations.hvplot.points(geo=True, tiles='CartoLight',  # c='WELL_TYPE',
                                                     frame_height=400, frame_width=300,
@@ -87,13 +82,7 @@ class Plotter(param.Parameterized):
             self.selected = index
 
     def load_obs_stations(self, stations_file):
-        dfs = pd.read_csv(stations_file)
-        # Filtering out null well names. Probably don't have data? Found out more later
-        dfs = dfs[~dfs['WELL_NAME'].isna()]
-        gdfs = gpd.GeoDataFrame(dfs,
-                                geometry=gpd.points_from_xy(dfs['LONGITUDE'], dfs['LATITUDE']),
-                                crs='EPSG:4326')
-        return gdfs
+        return obsreader.load_obs_stations(stations_file)
 
     @param.depends('depth', 'layer', 'distance', 'selected')
     def show_ts(self):
@@ -103,26 +92,26 @@ class Plotter(param.Parameterized):
         # Use only the first index in the array
         first_index = index[0]
         dfselected = self.stations.iloc[first_index, :]
-        stn_id = dfselected['STN_ID']
+        stn_id = dfselected['SITE_CODE']
         # FIX inefficiency below (need to carry crs onto gdfs slice)
         pts_within = get_points_within(
-            self.gnodes, self.stations[self.stations['STN_ID'] == stn_id], distance=self.distance)
+            self.gnodes, self.stations[self.stations['SITE_CODE'] == stn_id], distance=self.distance)
         nodeids = pts_within.index.values
         dfstn = get_obs_for_stn_id(self.measurements, stn_id)
         if self.depth:
             model_data = get_gw_depth_at_nodes(
                 nodeids, self.gwh, self.grid_data.stratigraphy, self.layer)
-            obs_data = dfstn[['GSE_WSE']]
+            obs_data = dfstn[['GSE_GWE']]
         else:
             model_data = get_gwh_at_nodes(nodeids, self.gwh, self.layer)
-            obs_data = dfstn[['WSE']]
+            obs_data = dfstn[['GWE']]
         obs_data.index.name = 'Time'
         model_curves = [hv.Curve(model_data.iloc[:, i], group='Model', label=c)
                         for i, c in enumerate(model_data.columns)]
         model_curves.insert(0, hv.Curve(obs_data, group='Observed',
                                         label='Observation [%s]' % dfselected['WELL_NAME']).opts(line_dash='dotted'))
         overlay = hv.Overlay(model_curves).opts(width=600, legend_position='top', legend_cols=True)
-        return overlay.opts(title='Groundwater (Model vs Obs) %s (Layer %s)' % ('Depth' if self.depth else 'Level', self.layer+1))
+        return overlay.opts(title='Groundwater (Model vs Obs) %s (Layer %s)' % ('Depth' if self.depth else 'Level', self.layer + 1))
 
 
 def build_panel(plt, distance):

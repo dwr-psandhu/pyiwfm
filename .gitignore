@@ -63,3 +63,4 @@ target/
 # pyenv python configuration file
 .python-version
 .vscode/settings.json
+tests/junit.xml
