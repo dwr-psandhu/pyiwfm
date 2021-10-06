@@ -1,6 +1,28 @@
 from argparse import ArgumentParser
 from pyiwfm import __version__
 
+
+def start_trimesh_animator(args):
+    print('starting trimesh animator: ', args.elements_file)
+    from pyiwfm import trimesh_animator
+    gwa = trimesh_animator.build_gwh_animator(
+        args.elements_file, args.nodes_file, args.strat_file, args.head_file)
+    import panel as pn
+    pn.extension()
+    pn.serve(trimesh_animator.build_panel(gwa))
+
+
+def start_gwh_obs_nodes(args):
+    print('starting ground water head observations vs nodes comparator')
+    from pyiwfm import gwh_obs_tsplotter
+    gpane = gwh_obs_tsplotter.build_dashboard(
+        args.elements_file, args.nodes_file, args.strat_file, args.head_file,
+        args.stations_file, args.measurements_file, distance=1000)
+    import panel as pn
+    pn.extension()
+    pn.serve(gpane)
+
+
 def cli(args=None):
     p = ArgumentParser(
         description="Python utilities for IWFM",
@@ -13,14 +35,37 @@ def cli(args=None):
         version="pyiwfm %s" % __version__,
     )
 
-    args, unknown = p.parse_known_args(args)
+    sub_p = p.add_subparsers(help='sub-command help')
+    # add animator command
+    parser_animator = sub_p.add_parser('trimesh-animator', help='start trimesh animator')
+    parser_animator.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_animator.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_animator.add_argument('--strat-file', type=str, required=True,
+                                 help='path to stratigraphy.dat file')
+    parser_animator.add_argument('--head-file', type=str, required=True,
+                                 help='path to heads-all.out file')
+    parser_animator.set_defaults(func=start_trimesh_animator)
+    # add gwh obs node command
+    parser_gwh_obs_nodes = sub_p.add_parser(
+        'head-obs-nodes', help='start groundwater heads observations vs nodes plotter')
+    parser_gwh_obs_nodes.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_gwh_obs_nodes.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_gwh_obs_nodes.add_argument('--strat-file', type=str, required=True,
+                                 help='path to stratigraphy.dat file')
+    parser_gwh_obs_nodes.add_argument('--head-file', type=str, required=True,
+                                 help='path to heads-all.out file')
+    parser_gwh_obs_nodes.add_argument(
+        '--stations-file', type=str, required=True, help='path to groundwater periodic stations file')
+    parser_gwh_obs_nodes.add_argument(
+        '--measurements-file', type=str, required=True, help='path to groundwater periodic measurements file')
+    parser_gwh_obs_nodes.set_defaults(func=start_gwh_obs_nodes)
 
-    # do something with the args
-    print("CLI template - fix me up!")
-
-    # No return value means no error.
-    # Return a value of 1 or higher to signify an error.
-    # See https://docs.python.org/3/library/sys.html#sys.exit
+    pargs = p.parse_args(args)
+    return pargs.func(pargs)
 
 
 if __name__ == '__main__':
