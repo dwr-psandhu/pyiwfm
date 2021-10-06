@@ -17,7 +17,8 @@ pn.extension()
 
 class NodeHeadPlotter(param.Parameterized):
     depth = param.Boolean(doc='Depth to Groundwater = GSE - Level (layer selected)')
-    layer = param.ObjectSelector(objects={'1': 0, '2': 1, '3': 2, '4': 3}, default=0, doc='Groundwater layers with 1 is top unconfined')
+    layer = param.ObjectSelector(objects={'1': 0, '2': 1, '3': 2, '4': 3},
+                                 default=0, doc='Groundwater layers with 1 is top unconfined')
     selected = param.List(default=[0], doc='Selected node indices to display in plot')
 
     def __init__(self, elements_file, nodes_file, stratigraphy_file, gwh_file, recache=False, **kwargs):
@@ -30,9 +31,9 @@ class NodeHeadPlotter(param.Parameterized):
                                                   frame_height=400, frame_width=300,
                                                   fill_alpha=0.9, line_alpha=0.4,
                                                   hover_cols=['index'])
-        self.node_map = self.node_map.opts(opts.Points(tools=['tap','hover'], size=10,
+        self.node_map = self.node_map.opts(opts.Points(tools=['tap', 'hover'], size=10,
                                                        nonselection_color='red', nonselection_alpha=0.6, active_tools=['wheel_zoom']))
-        # create a selection stream and point the source to the map 
+        # create a selection stream and point the source to the map
         self.select_nodes = hv.streams.Selection1D(source=self.node_map, index=[0])
         # add the method to subscribe to selections and set param 'selected'
         self.select_nodes.add_subscriber(self.set_selected)
@@ -54,7 +55,12 @@ class NodeHeadPlotter(param.Parameterized):
             data = [self.gwh[self.layer].iloc[:, i] for i in self.selected]
         els = [d.hvplot.line().opts(framewise=True) for d in data]
         return hv.Overlay(els).opts(framewise=True, title='Groundwater %s (Layer %s)'
-                                    % ('Depth' if self.depth else 'Level', self.layer+1))
+                                    % ('Depth' if self.depth else 'Level', self.layer + 1))
+
+
+def build_dashboard(element_file, node_file, strat_file, gwh_file):
+    plt = NodeHeadPlotter(element_file, node_file, strat_file, gwh_file)
+    return plt
 
 
 def build_gwh_ts_pane(plt):

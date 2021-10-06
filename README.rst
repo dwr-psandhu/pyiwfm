@@ -27,7 +27,7 @@ allow the commands below to access the environment.yml file that is needed to se
 The above command ensures that strict channel priority is used when creating the environment.
 The environment will be named env_iwfm by default and will contain all the dependencies needed. 
 
-Finally, clone this directory and change directory to it and install it as follows
+Finally, clone this directory and change directory to it and install it as followsd
 
 ::
 
@@ -133,3 +133,26 @@ and displays nearby model node heads along with observed values in a plot
     --measurements-file MEASUREMENTS_FILE
                             path to groundwater periodic measurements file
 
+Groundwater head at nodes
+.........................
+
+The nodes are displayed as dots on the map and click on them shows a plot of the head
+
+** Use Shift + Mouse Clicks to select multiple nodes and overlay their groundwater heads **
+
+::
+
+    pyiwfm head-nodes -h
+    usage: pyiwfm head-nodes [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file
+                            HEAD_FILE
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --elements-file ELEMENTS_FILE
+                            path to elements.dat file
+    --nodes-file NODES_FILE
+                            path to nodes.dat file
+    --strat-file STRAT_FILE
+                            path to stratigraphy.dat file
+    --head-file HEAD_FILE
+                            path to heads-all.out file

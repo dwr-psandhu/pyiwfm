@@ -23,6 +23,17 @@ def start_gwh_obs_nodes(args):
     pn.serve(gpane)
 
 
+def start_gwh_nodes(args):
+    print('starting ground water head nodes viewer')
+    from pyiwfm import gwh_tsplotter
+    plt = gwh_tsplotter.build_dashboard(
+        args.elements_file, args.nodes_file, args.strat_file, args.head_file)
+    gpane = gwh_tsplotter.build_gwh_ts_pane(plt)
+    import panel as pn
+    pn.extension()
+    pn.serve(gpane)
+
+
 def cli(args=None):
     p = ArgumentParser(
         description="Python utilities for IWFM",
@@ -63,7 +74,19 @@ def cli(args=None):
     parser_gwh_obs_nodes.add_argument(
         '--measurements-file', type=str, required=True, help='path to groundwater periodic measurements file')
     parser_gwh_obs_nodes.set_defaults(func=start_gwh_obs_nodes)
-
+    #
+    parser_gwh_nodes = sub_p.add_parser(
+        'head-nodes', help='dashboard to plot groundwater heads at nodes')
+    parser_gwh_nodes.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_gwh_nodes.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_gwh_nodes.add_argument('--strat-file', type=str, required=True,
+                                 help='path to stratigraphy.dat file')
+    parser_gwh_nodes.add_argument('--head-file', type=str, required=True,
+                                 help='path to heads-all.out file')
+    parser_gwh_nodes.set_defaults(func=start_gwh_nodes)
+    # Now call the appropriate response.
     pargs = p.parse_args(args)
     return pargs.func(pargs)
 
