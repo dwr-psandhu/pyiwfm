@@ -1,0 +1,29 @@
+name: env_c2vsim
+
+channels:
+  - defaults
+  - conda-forge
+ 
+dependencies:
+  #basics
+  - python
+  - pip
+  - ipykernel
+  - autopep8
+  #data
+  - pandas
+  - xarray
+  - scikit-learn
+  - statsmodels
+  - dask
+  - numba
+  #visualization
+  - pyepsg
+  - geopandas
+  - holoviews 
+  - hvplot
+  - matplotlib
+  - bokeh
+  - geoviews
+  - ipyleaflet
+  - spatialpandas
