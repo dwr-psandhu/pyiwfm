@@ -111,6 +111,8 @@ Groundwater Head Observations vs Node Plotter
 Groundwater Heads Observations vs Node Plotter displays the observation wells as dots on a map
 and displays nearby model node heads along with observed values in a plot
 
+The stations.csv and measurements.csv file can be downloaded from `CA DWR's Open Data Site <https://data.cnra.ca.gov/dataset/periodic-groundwater-level-measurements>`_
+
 ::
 
     pyiwfm head-obs-nodes --help
