@@ -163,3 +163,45 @@ The nodes are displayed as dots on the map and click on them shows a plot of the
                             path to heads-all.out file
 
 .. image:: docs/images/head-nodes-snapshot.jpg
+
+
+Nodes GIS Map and Export
+........................
+
+Display nodes on map and export to shapefiles
+
+::
+
+    pyiwfm nodes-gis -h
+    usage: pyiwfm nodes-gis [-h] --nodes-file NODES_FILE [-o OUTPUT_DIR]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --nodes-file NODES_FILE
+                            path to nodes.dat file
+    -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                            output directory to write out shapefile information
+
+.. image:: docs/images/nodes-gis-snapshot.jpg
+
+
+Elements GIS Map and Export
+...........................
+
+Display elements on map and export to shapefile
+
+::
+
+    pyiwfm elements-gis -h
+    usage: pyiwfm elements-gis [-h] --nodes-file NODES_FILE --elements-file ELEMENTS_FILE [-o OUTPUT_DIR]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --nodes-file NODES_FILE
+                            path to nodes.dat file
+    --elements-file ELEMENTS_FILE
+                            path to nodes.dat file
+    -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                            output directory to write out shapefile information
+
+.. image:: docs/images/elements-gis-snapshot.jpg

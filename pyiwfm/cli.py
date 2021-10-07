@@ -57,6 +57,29 @@ def start_nodes_gis(args):
     pn.serve(gpane)
 
 
+def start_elements_gis(args):
+    print('starting elements gis viewer')
+    import pyiwfm
+    import hvplot.pandas
+    import pyiwfm.geo
+    import panel as pn
+    pn.extension()
+    elements = pyiwfm.read_elements(args.elements_file)
+    nodes = pyiwfm.read_nodes(args.nodes_file)
+    nodes['ID'] = nodes.index
+    gel = pyiwfm.geo.elements_gdf(nodes, elements)
+    el_map = gel.hvplot.polygons(geo=True, tiles='OSM', crs='EPSG:26910',
+                             frame_width=500, frame_height=500,
+                             c='5', cmap='Category20',
+                             alpha=0.5, line_alpha=0.3, fill_alpha=0.5)
+    gpane = pn.Row(gel.head(), el_map)
+    if args.output_dir:
+        print('writing output to ', args.output_dir)
+        gel.to_file(args.output_dir)
+
+    pn.serve(gpane)
+
+
 def cli(args=None):
     p = ArgumentParser(
         description="Python utilities for IWFM",
@@ -118,6 +141,16 @@ def cli(args=None):
     parser_nodes_gis.add_argument('-o', '--output-dir', type=str,
                                   help='output directory to write out shapefile information')
     parser_nodes_gis.set_defaults(func=start_nodes_gis)
+    # elements-gis
+    parser_elements_gis = sub_p.add_parser(
+        'elements-gis', help='plot elements on a map & save to gis shapefile information')
+    parser_elements_gis.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_elements_gis.add_argument('--elements-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_elements_gis.add_argument('-o', '--output-dir', type=str,
+                                  help='output directory to write out shapefile information')
+    parser_elements_gis.set_defaults(func=start_elements_gis)
     # Now call the appropriate response.
     pargs = p.parse_args(args)
     pargs.func(pargs)
