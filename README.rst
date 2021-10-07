@@ -62,23 +62,23 @@ To get help on commands and sub-commands
 
 ::
 
-    pyiwfm --help
-
-    usage: pyiwfm [-h] [-V] {trimesh-animator,head-obs-nodes} ...
+    pyiwfm -h
+    usage: pyiwfm [-h] [-V] {trimesh-animator,head-obs-nodes,head-nodes,nodes-gis,elements-gis} ...
 
     Python utilities for IWFM
 
     positional arguments:
-    {trimesh-animator,head-obs-nodes}
+    {trimesh-animator,head-obs-nodes,head-nodes,nodes-gis,elements-gis}
                             sub-command help
         trimesh-animator    start trimesh animator
         head-obs-nodes      start groundwater heads observations vs nodes plotter
+        head-nodes          dashboard to plot groundwater heads at nodes
+        nodes-gis           plot nodes on a map & save to gis shapefile information
+        elements-gis        plot elements on a map & save to gis shapefile information
 
     optional arguments:
     -h, --help            show this help message and exit
-    -V, --version         Show the conda-prefix-replacement version number and
-                            exit.
-
+    -V, --version         Show the conda-prefix-replacement version number and exit.
 
 Trimesh Animator
 ................
@@ -88,9 +88,7 @@ Trimesh Animator displays the groundwater head elevations/depths on a map
 ::
 
     pyiwfm trimesh-animator --help
-    usage: pyiwfm trimesh-animator [-h] --elements-file ELEMENTS_FILE --nodes-file
-                                NODES_FILE --strat-file STRAT_FILE --head-file
-                                HEAD_FILE
+    usage: pyiwfm trimesh-animator [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file HEAD_FILE [--head-file-base HEAD_FILE_BASE]
 
     optional arguments:
     -h, --help            show this help message and exit
@@ -102,6 +100,8 @@ Trimesh Animator displays the groundwater head elevations/depths on a map
                             path to stratigraphy.dat file
     --head-file HEAD_FILE
                             path to heads-all.out file
+    --head-file-base HEAD_FILE_BASE
+                            path to base heads-all.out file to display differences calculated as headfile - headfilebase
 
 .. image:: docs/images/trimesh-animator-snapshot.jpg
 
@@ -147,9 +147,8 @@ The nodes are displayed as dots on the map and click on them shows a plot of the
 
 ::
 
-    pyiwfm head-nodes -h
-    usage: pyiwfm head-nodes [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file
-                            HEAD_FILE
+    pyiwfm trimesh-animator --help
+    usage: pyiwfm trimesh-animator [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file HEAD_FILE [--head-file-base HEAD_FILE_BASE]
 
     optional arguments:
     -h, --help            show this help message and exit
@@ -161,6 +160,8 @@ The nodes are displayed as dots on the map and click on them shows a plot of the
                             path to stratigraphy.dat file
     --head-file HEAD_FILE
                             path to heads-all.out file
+    --head-file-base HEAD_FILE_BASE
+                            path to base heads-all.out file to display differences calculated as headfile - headfilebase
 
 .. image:: docs/images/head-nodes-snapshot.jpg
 
