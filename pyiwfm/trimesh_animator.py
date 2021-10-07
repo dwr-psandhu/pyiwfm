@@ -197,7 +197,7 @@ def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_fil
     dfgw0 = dfgwh[0]
     dfn0['z'] = dfgw0.iloc[0, :].values
     # make animator
-    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, name='Groundwater Level %s Animator' % ('' if gw_head_base_file == None else 'Difference'))
+    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, name='Groundwater Level %s Animator' % ('' if gw_head_file_base == None else 'Difference'))
 
 
 def build_description_pane():
