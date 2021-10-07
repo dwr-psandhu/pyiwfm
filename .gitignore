@@ -1,4 +1,5 @@
 tests/data/**
+*.bat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -62,5 +63,5 @@ target/
 
 # pyenv python configuration file
 .python-version
-.vscode/settings.json
+.vscode/
 tests/junit.xml
