@@ -7,7 +7,8 @@ def start_trimesh_animator(args):
     print('starting trimesh animator: ', args.elements_file)
     from pyiwfm import trimesh_animator
     gwa = trimesh_animator.build_gwh_animator(
-        args.elements_file, args.nodes_file, args.strat_file, args.head_file)
+        args.elements_file, args.nodes_file, args.strat_file,
+        args.head_file, gw_head_file_base=args.head_file_base)
     import panel as pn
     pn.extension()
     pn.serve(trimesh_animator.build_panel(gwa))
@@ -28,7 +29,8 @@ def start_gwh_nodes(args):
     print('starting ground water head nodes viewer')
     from pyiwfm import gwh_tsplotter
     plt = gwh_tsplotter.build_dashboard(
-        args.elements_file, args.nodes_file, args.strat_file, args.head_file)
+        args.elements_file, args.nodes_file, args.strat_file,
+        args.head_file, gwh_file_base=args.head_file_base)
     gpane = gwh_tsplotter.build_gwh_ts_pane(plt)
     import panel as pn
     pn.extension()
@@ -104,6 +106,8 @@ def cli(args=None):
                                  help='path to stratigraphy.dat file')
     parser_animator.add_argument('--head-file', type=str, required=True,
                                  help='path to heads-all.out file')
+    parser_animator.add_argument('--head-file-base', type=str, required=False,
+                                 help='path to base heads-all.out file to display differences calculated as headfile - headfilebase')
     parser_animator.set_defaults(func=start_trimesh_animator)
     # head-obs-nodes
     parser_gwh_obs_nodes = sub_p.add_parser(
@@ -132,6 +136,8 @@ def cli(args=None):
                                  help='path to stratigraphy.dat file')
     parser_gwh_nodes.add_argument('--head-file', type=str, required=True,
                                  help='path to heads-all.out file')
+    parser_gwh_nodes.add_argument('--head-file-base', type=str, required=False,
+                                 help='path to heads-all.out file to display differences calculated as headfile - headfilebase')
     parser_gwh_nodes.set_defaults(func=start_gwh_nodes)
     # nodes-gis
     parser_nodes_gis = sub_p.add_parser(

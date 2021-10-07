@@ -55,10 +55,12 @@ class Plotter(param.Parameterized):
     distance = param.Number(default=5000, bounds=(0, 10000))
     selected = param.List(default=[0], doc='Selected node indices to display in plot')
 
-    def __init__(self, elements_file, nodes_file, stratigraphy_file, gwh_file, stations_file, measurements_file, **kwargs):
+    def __init__(self, elements_file, nodes_file, stratigraphy_file, gwh_file, stations_file, measurements_file, gwh_file_base=None, **kwargs):
         super().__init__(**kwargs)
         self.grid_data = pyiwfm.load_data(elements_file, nodes_file, stratigraphy_file)
         self.gwh = pyiwfm.read_and_cache(gwh_file, self.grid_data.nlayers)
+        if gwh_file_base:
+            self.gwh_base = pyiwfm.read_and_cache(gwh_file_base, self.grid_data.nlayers)
         self.gnodes = gpd.GeoDataFrame(self.grid_data.nodes.copy(), geometry=[
             shapely.geometry.Point(v) for v in self.grid_data.nodes.values], crs='EPSG:26910')
         self.stations = self.load_obs_stations(stations_file)

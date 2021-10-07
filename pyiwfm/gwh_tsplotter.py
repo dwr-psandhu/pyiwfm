@@ -21,10 +21,16 @@ class NodeHeadPlotter(param.Parameterized):
                                  default=0, doc='Groundwater layers with 1 is top unconfined')
     selected = param.List(default=[0], doc='Selected node indices to display in plot')
 
-    def __init__(self, elements_file, nodes_file, stratigraphy_file, gwh_file, recache=False, **kwargs):
+    def __init__(self, elements_file, nodes_file, stratigraphy_file, gwh_file, gwh_file_base=None, recache=False, **kwargs):
         super().__init__(**kwargs)
         self.grid_data = pyiwfm.load_data(elements_file, nodes_file, stratigraphy_file)
         self.gwh = pyiwfm.read_and_cache(gwh_file, self.grid_data.nlayers, recache=recache)
+        if gwh_file_base:
+            self.gwh_base = pyiwfm.read_and_cache(
+                gwh_file_base, self.grid_data.nlayers, recache=recache)
+            self.gwh = pyiwfm.reader.diff_heads(self.gwh, self.gwh_base)
+        else:
+            self.gwh_base = None
         self.gnodes = gpd.GeoDataFrame(self.grid_data.nodes.copy(), geometry=[
             shapely.geometry.Point(v) for v in self.grid_data.nodes.values])
         self.node_map = self.gnodes.hvplot.points(geo=True, crs='EPSG:26910', tiles='CartoLight',
@@ -54,12 +60,13 @@ class NodeHeadPlotter(param.Parameterized):
         else:
             data = [self.gwh[self.layer].iloc[:, i] for i in self.selected]
         els = [d.hvplot.line().opts(framewise=True) for d in data]
-        return hv.Overlay(els).opts(framewise=True, title='Groundwater %s (Layer %s)'
-                                    % ('Depth' if self.depth else 'Level', self.layer + 1))
+        pretitle = 'Groundwater' if self.gwh_base == None else 'Groundwater difference'
+        return hv.Overlay(els).opts(framewise=True, title='%s %s (Layer %s)'
+                                    % (pretitle, 'Depth' if self.depth else 'Level', self.layer + 1))
 
 
-def build_dashboard(element_file, node_file, strat_file, gwh_file):
-    plt = NodeHeadPlotter(element_file, node_file, strat_file, gwh_file)
+def build_dashboard(element_file, node_file, strat_file, gwh_file, gwh_file_base=None):
+    plt = NodeHeadPlotter(element_file, node_file, strat_file, gwh_file, gwh_file_base=gwh_file_base)
     return plt
 
 

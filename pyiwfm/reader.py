@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import re
 
+
 def read_elements(file):
     with open(file, 'r') as fh:
         line = fh.readline()
@@ -44,16 +45,16 @@ def read_hydrograph(file):
         line = fh.readline()
         while line.find('/ NOUTH') < 0:
             line = fh.readline()
-        nrows=int(re.findall('\d+',line)[0])
-        line=fh.readline() # skip next line before continuing
-        line=fh.readline()
+        nrows = int(re.findall('\d+', line)[0])
+        line = fh.readline()  # skip next line before continuing
+        line = fh.readline()
         while line.startswith('C'):
-            pos=fh.tell()
-            line=fh.readline()
+            pos = fh.tell()
+            line = fh.readline()
         fh.seek(pos)
         return pd.read_csv(fh, sep='\s+',
                            header=None,
-                           names=['iouthl', 'x', 'y', 'iouth', 'sep', 'Calibration_ID'], 
+                           names=['iouthl', 'x', 'y', 'iouth', 'sep', 'Calibration_ID'],
                            nrows=nrows)
 
 
@@ -65,7 +66,7 @@ def read_stratigraphy(file):
         fields = line.split()
         nlayers = int(str.strip(fields[0]))  # number of layers in the file
         layer_cols = []
-        for i in range(1, nlayers+1):
+        for i in range(1, nlayers + 1):
             layer_cols.append('A%d' % i)
             layer_cols.append('L%d' % i)
         #
@@ -73,7 +74,7 @@ def read_stratigraphy(file):
                 (line.find('ID') < 0 and line.find('ELV') < 0):
             line = fh.readline()
         fh.readline()
-        cols = ['NodeID', 'GSE']+layer_cols
+        cols = ['NodeID', 'GSE'] + layer_cols
         return pd.read_csv(fh, sep='\s+', comment='C', index_col=0,
                            header=None, names=cols, usecols=cols)
 
@@ -100,8 +101,8 @@ def rearrange(df0, drop_first=False):
 
 def read_gwhead(gwheadfile, nlayers):
     dfh = pd.read_fwf(gwheadfile, skiprows=5, sep='\s+', nrows=1)
-    colspecs = [(i*12+22, i*12+34) for i in range(0, len(dfh.columns))]
-    colspecs = [(0, 22)]+colspecs
+    colspecs = [(i * 12 + 22, i * 12 + 34) for i in range(0, len(dfh.columns))]
+    colspecs = [(0, 22)] + colspecs
     df = pd.read_fwf(gwheadfile, skiprows=6, header=None, sep='\s+', colspecs=colspecs)
     # 4 layers --> 4 dataframes, one for each layer
     layer_df = {i: df.iloc[i::nlayers] for i in range(nlayers)}
@@ -156,10 +157,16 @@ def load_data(elements_file, nodes_file, stratigraphy_file):
     nodes = read_nodes(nodes_file)
     strat = read_stratigraphy(stratigraphy_file)
     # FIXME: not a great way to get layers but works. need a cleaner implementation
-    nlayers = len(strat.columns)//2
+    nlayers = len(strat.columns) // 2
     return GridData(el, nodes, strat, nlayers)
 
 
 def load_gwh(gwh_file, nlayers, recache=False):
     gwh = read_and_cache(gwh_file, nlayers, recache)
     return gwh
+
+
+def diff_heads(dfgwh, dfgwh_base):
+    for k in dfgwh.keys():
+        dfgwh[k] = dfgwh[k] - dfgwh_base[k]
+    return dfgwh

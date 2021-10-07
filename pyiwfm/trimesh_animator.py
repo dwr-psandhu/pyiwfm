@@ -58,7 +58,7 @@ def build_trimesh_simplex(dfe):
 
     dftri = pd.concat([dftri, dftri1, dftri2], axis=0, ignore_index=True)
     # adjust trimesh simplices by -1 to adjust from 1-based to 0-based
-    dftri = dftri-1
+    dftri = dftri - 1
     return dftri
 
 # https://stackoverflow.com/questions/361681/algorithm-for-nice-grid-line-intervals-on-a-graph
@@ -75,8 +75,8 @@ def best_tick(largest, mostticks):
 
 
 def calc_levels(min, max, nlevels=10):
-    tick = best_tick(max-min, nlevels)
-    return [min+tick*i for i in range(nlevels)]
+    tick = best_tick(max - min, nlevels)
+    return [min + tick * i for i in range(nlevels)]
 
 
 class GWHeadAnimator(param.Parameterized):
@@ -122,9 +122,9 @@ class GWHeadAnimator(param.Parameterized):
         # set the z values based on args
         if depth:
             self.trimesh.nodes.data.z = self.dfgse['GSE'].values - \
-                self.dfgwh[self.layer-1].loc[year, :].values
+                self.dfgwh[self.layer - 1].loc[year, :].values
         else:
-            self.trimesh.nodes.data.z = self.dfgwh[self.layer-1].loc[year, :].values
+            self.trimesh.nodes.data.z = self.dfgwh[self.layer - 1].loc[year, :].values
         return self.trimesh
 
     @param.depends('draw_contours', 'do_shading', 'fix_color_range', 'color_range')
@@ -186,15 +186,18 @@ class GWHeadAnimator(param.Parameterized):
         return self.overlay
 
 
-def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_file, recache=False):
+def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_file, gw_head_file_base=None, recache=False):
     # load data from files and convert to map crs
     grid_data = pyiwfm.load_data(elements_file, nodes_file, stratigraphy_file)
     dfgwh = pyiwfm.load_gwh(gw_head_file, grid_data.nlayers, recache=recache)
+    if gw_head_file_base:
+        dfgwhb = pyiwfm.load_gwh(gw_head_file_base, grid_data.nlayers, recache=recache)
+        dfgwh = pyiwfm.reader.diff_heads(dfgwh, dfgwhb)
     dfn0 = convertxy(grid_data.nodes)
     dfgw0 = dfgwh[0]
     dfn0['z'] = dfgw0.iloc[0, :].values
     # make animator
-    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, name='Groundwater Level Animator')
+    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, name='Groundwater Level %s Animator' % ('' if gw_head_base_file == None else 'Difference'))
 
 
 def build_description_pane():
