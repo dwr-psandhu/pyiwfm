@@ -140,8 +140,7 @@ class GWHeadAnimator(param.Parameterized):
     def viewmap(self):
         #print('Called view')
         if self.dmap is None:
-            self.dmap = hv.DynamicMap(self.update_mesh, kdims=['year', 'depth'])
-            self.dmap = self.dmap.redim.values(year=self.dfgwh[0].index, depth=[True, False])
+            self.dmap = hv.DynamicMap(self.update_mesh, kdims=['year', 'depth'], cache_size=1)
         # create mesh and contours
         if self.overlay is None:
             mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'))
