@@ -168,8 +168,8 @@ file is assumed to have a custom format
 
 .. image:: docs/images/calib-head-obs-nodes.jpg
 
-Groundwater Calibration Observation - Model head root mean squared differences on a map
-........................................................................................
+Groundwater Calibration root mean squared (RMSE) differences on a map
+.....................................................................
 
 An example of displaying and being able to save a standalone html interactive plot of
 differences between calibration observations and nearby node heads as root mean squared errors (rmse).
@@ -198,7 +198,7 @@ The map displays the locations as dots with their colors based on the rmse value
     --output-file OUTPUT_FILE
                             html file to save rmse map to
 
-.. image:: docs/test/calib-rmse-map.jpg
+.. image:: docs/images/calib-head-rmse.jpg
 
 Groundwater head at nodes
 .........................
