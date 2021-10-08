@@ -25,6 +25,30 @@ def start_gwh_obs_nodes(args):
     pn.serve(gpane)
 
 
+def start_gwh_calib_obs_nodes(args):
+    print('starting groundwater calibration observations vs nodes comparator')
+    from . import gwh_obs_calib_tsplotter
+    gpane = gwh_obs_calib_tsplotter.build_dashboard(args.elements_file, args.nodes_file, args.strat_file,
+        args.head_file, args.calib_gdb_file, distance=5000)
+    import panel as pn
+    pn.extension()
+    pn.serve(gpane)
+
+
+def build_calib_rmse_map(args):
+    print('starting calib rmse map')
+    from . import gwh_obs_calib_tsplotter
+    dfhyd = pyiwfm.read_hydrograph(args.cvprint_file)
+    plt = gwh_obs_calib_tsplotter.build_calib_plotter(args.elements_file, args.nodes_file, args.strat_file,
+                args.head_file, args.calib_gdb_file)
+    rmse_map = gwh_obs_calib_tsplotter.build_rmse_map(plt, dfhyd)
+    if args.output_file:
+        gwh_obs_calib_tsplotter.save_html(rmse_map, args.output_file)
+    import panel as pn
+    pn.extension()
+    pn.serve(rmse_map)
+
+
 def start_gwh_nodes(args):
     print('starting ground water head nodes viewer')
     from pyiwfm import gwh_tsplotter
@@ -125,6 +149,39 @@ def cli(args=None):
     parser_gwh_obs_nodes.add_argument(
         '--measurements-file', type=str, required=True, help='path to groundwater periodic measurements file')
     parser_gwh_obs_nodes.set_defaults(func=start_gwh_obs_nodes)
+    # calib-head-obs-nodes
+    parser_calib_gwh_obs_nodes = sub_p.add_parser(
+        'calib-head-obs-nodes', help='start calibration groundwater heads observations vs nodes plotter')
+    parser_calib_gwh_obs_nodes.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_calib_gwh_obs_nodes.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_calib_gwh_obs_nodes.add_argument('--strat-file', type=str, required=True,
+                                 help='path to stratigraphy.dat file')
+    parser_calib_gwh_obs_nodes.add_argument('--head-file', type=str, required=True,
+                                 help='path to heads-all.out file')
+    parser_calib_gwh_obs_nodes.add_argument('--calib-gdb-file', type=str, required=True,
+                                 help='path to gdb file')
+    parser_calib_gwh_obs_nodes.set_defaults(func=start_gwh_calib_obs_nodes)
+    # calib-rmse-map
+    parser_rmse_map = sub_p.add_parser(
+        'calib-rmse-map', help='create calibration rmse (root mean squared) map')
+    parser_rmse_map.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_rmse_map.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_rmse_map.add_argument('--strat-file', type=str, required=True,
+                                 help='path to stratigraphy.dat file')
+    parser_rmse_map.add_argument('--head-file', type=str, required=True,
+                                 help='path to heads-all.out file')
+    parser_rmse_map.add_argument('--calib-gdb-file', type=str, required=True,
+                                 help='path to gdb file')
+    parser_rmse_map.add_argument('--cvprint-file', type=str, required=True,
+                                 help='path to cvprint file')
+    parser_rmse_map.add_argument('--output-file', type=str, required=False,
+                                 help='html file to save rmse map to')
+
+    parser_rmse_map.set_defaults(func=build_calib_rmse_map)
     # head-nodes
     parser_gwh_nodes = sub_p.add_parser(
         'head-nodes', help='dashboard to plot groundwater heads at nodes')

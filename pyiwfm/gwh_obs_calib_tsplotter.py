@@ -30,12 +30,12 @@ ensure_version(gpd.__version__, '0.8.1')  # crs doesn't work correctly before th
 
 
 def get_points_within(gnodes, gdfs, distance=5000):
-    import gwh_obs_tsplotter
+    from . import gwh_obs_tsplotter
     return gwh_obs_tsplotter.get_points_within(gnodes, gdfs, distance)
 
 
 def get_gwh_at_nodes(nodeids, gwh, layer=0):
-    import gwh_obs_tsplotter
+    from . import gwh_obs_tsplotter
     return gwh_obs_tsplotter.get_gwh_at_nodes(nodeids, gwh, layer)
 
 
@@ -72,13 +72,13 @@ def get_model_interpolated_data_for_sid(gelements, gwh, stations, sid, layer=0):
     xp, yp = xp[0], yp[0]
     gel = gelements[gelements.contains(station_geometry)]
     poly_containing = gel.geometry.values[0]
-    npts = len(poly_containing.exterior.coords)-1
+    npts = len(poly_containing.exterior.coords) - 1
     nodes_list = gel.iloc[0, 0:npts].astype('str').to_list()
     node_heads = gwh[layer].loc[:, nodes_list]
     x, y = poly_containing.exterior.coords.xy
     x, y = x[:-1], y[:-1]
     coeffs = pyiwfm.geo.interp(xp, yp, x, y)
-    head_weighted = node_heads*coeffs
+    head_weighted = node_heads * coeffs
     head_xy = head_weighted.sum(axis=1)
     return head_xy
 
@@ -86,7 +86,7 @@ def get_model_interpolated_data_for_sid(gelements, gwh, stations, sid, layer=0):
 def calculate_model_metric(gelements, gwh, stations, measurements, dfhyd):
     rmse_arr = []
     for sid in stations['Calibration_ID']:
-        layer = dfhyd[dfhyd['Calibration_ID']==3]['iouthl'].values[0]-1
+        layer = dfhyd[dfhyd['Calibration_ID'] == 3]['iouthl'].values[0] - 1
         model_data, obs_data = get_model_interpolated_obs_data_for_sid(
             gelements, gwh, stations, measurements, sid, layer)
         model_data_interp = model_data.resample('D').interpolate()
@@ -151,7 +151,7 @@ class CalibPlotter(param.Parameterized):
         model_curves.insert(0, hv.Curve(obs_data, group='Observed',
                                         label='Observation [%s]' % dfselected['Calibration_ID']).opts(line_dash='dotted'))
         overlay = hv.Overlay(model_curves).opts(width=600, legend_position='top', legend_cols=True)
-        return overlay.opts(title='Groundwater (Model vs Calibration Wells) %s (Layer %s)' % ('Level', self.layer+1))
+        return overlay.opts(title='Groundwater (Model vs Calibration Wells) %s (Layer %s)' % ('Level', self.layer + 1))
 
 
 def build_panel(plt, distance):
@@ -164,9 +164,18 @@ def build_panel(plt, distance):
     return gs
 
 
-def build_dashboard(element_file, node_file, strat_file, gwh_file, stations_file, measurements_file, distance=5000):
-    plt = CalibPlotter(element_file, node_file, strat_file,
-                       gwh_file, stations_file, measurements_file)
+def build_calib_plotter(elements_file, nodes_file, stratigraphy_file, gwh_file, calib_gdb_file):
+    from . import obsreader, reader
+    grid_data = reader.load_data(elements_file, nodes_file, stratigraphy_file)
+    gwh = reader.load_gwh(gwh_file, grid_data.nlayers)
+    stations = obsreader.load_calib_stations(calib_gdb_file)
+    measurements = obsreader.load_calib_measurements(calib_gdb_file)
+    plt = CalibPlotter(grid_data, gwh, stations, measurements)
+    return plt
+
+
+def build_dashboard(element_file, node_file, strat_file, gwh_file, calib_gdb_file, distance=5000):
+    plt = build_calib_plotter(element_file, node_file, strat_file, gwh_file, calib_gdb_file)
     gpane = build_panel(plt, distance)
     return gpane
 
@@ -186,7 +195,7 @@ def build_rmse_map(plt, dfhyd):
     The layer from the model to compare with observed is chosen from CVPrint.dat
 
     The color bar on the right is limited from 0 (no error) to a maximum of 100 feet ''')
-    row = pn.Row(hv.element.tiles.CartoLight()*rmse_map)
+    row = pn.Row(hv.element.tiles.CartoLight() * rmse_map)
     rmse_map_panel = pn.Column(desc, row)
     return rmse_map_panel
 

@@ -63,15 +63,18 @@ To get help on commands and sub-commands
 ::
 
     pyiwfm -h
-    usage: pyiwfm [-h] [-V] {trimesh-animator,head-obs-nodes,head-nodes,nodes-gis,elements-gis} ...
+    usage: pyiwfm [-h] [-V] {trimesh-animator,head-obs-nodes,calib-head-obs-nodes,calib-rmse-map,head-nodes,nodes-gis,elements-gis} ...
 
     Python utilities for IWFM
 
     positional arguments:
-    {trimesh-animator,head-obs-nodes,head-nodes,nodes-gis,elements-gis}
+    {trimesh-animator,head-obs-nodes,calib-head-obs-nodes,calib-rmse-map,head-nodes,nodes-gis,elements-gis}
                             sub-command help
         trimesh-animator    start trimesh animator
         head-obs-nodes      start groundwater heads observations vs nodes plotter
+        calib-head-obs-nodes
+                            start calibration groundwater heads observations vs nodes plotter
+        calib-rmse-map      create calibration rmse (root mean squared) map
         head-nodes          dashboard to plot groundwater heads at nodes
         nodes-gis           plot nodes on a map & save to gis shapefile information
         elements-gis        plot elements on a map & save to gis shapefile information
@@ -137,6 +140,65 @@ The stations.csv and measurements.csv file can be downloaded from `CA DWR's Open
                             path to groundwater periodic measurements file
 
 .. image:: docs/images/head-obs-nodes-snapshot.jpg
+
+Groundwater Calibration Observation Well Heads vs Nodes
+.......................................................
+
+Calibration Groundwater Heads used in a calibration and stored in the geodatabase file. These are a 
+curated subset of data available that qualifies to be used for calibration. The format in the geodatabase 
+file is assumed to have a custom format
+
+::
+
+    pyiwfm calib-head-obs-nodes -h
+    usage: pyiwfm calib-head-obs-nodes [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file HEAD_FILE --calib-gdb-file CALIB_GDB_FILE
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --elements-file ELEMENTS_FILE
+                            path to elements.dat file
+    --nodes-file NODES_FILE
+                            path to nodes.dat file
+    --strat-file STRAT_FILE
+                            path to stratigraphy.dat file
+    --head-file HEAD_FILE
+                            path to heads-all.out file
+    --calib-gdb-file CALIB_GDB_FILE
+                            path to gdb file
+
+.. image:: docs/images/calib-head-obs-nodes.jpg
+
+Groundwater Calibration Observation - Model head root mean squared differences on a map
+........................................................................................
+
+An example of displaying and being able to save a standalone html interactive plot of
+differences between calibration observations and nearby node heads as root mean squared errors (rmse).
+The map displays the locations as dots with their colors based on the rmse values
+
+::
+
+    pyiwfm calib-rmse-map -h
+    usage: pyiwfm calib-rmse-map [-h] --elements-file ELEMENTS_FILE --nodes-file NODES_FILE --strat-file STRAT_FILE --head-file HEAD_FILE --calib-gdb-file CALIB_GDB_FILE --cvprint-file
+                                CVPRINT_FILE [--output-file OUTPUT_FILE]
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --elements-file ELEMENTS_FILE
+                            path to elements.dat file
+    --nodes-file NODES_FILE
+                            path to nodes.dat file
+    --strat-file STRAT_FILE
+                            path to stratigraphy.dat file
+    --head-file HEAD_FILE
+                            path to heads-all.out file
+    --calib-gdb-file CALIB_GDB_FILE
+                            path to gdb file
+    --cvprint-file CVPRINT_FILE
+                            path to cvprint file
+    --output-file OUTPUT_FILE
+                            html file to save rmse map to
+
+.. image:: docs/test/calib-rmse-map.jpg
 
 Groundwater head at nodes
 .........................

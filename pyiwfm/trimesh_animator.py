@@ -78,6 +78,15 @@ def calc_levels(min, max, nlevels=10):
     tick = best_tick(max - min, nlevels)
     return [min + tick * i for i in range(nlevels)]
 
+def calculate_value_at(trimesh,x,y):
+    cvs=ds.Canvas(plot_width=3,plot_height=3,x_range=(x-1,x+1),y_range=(y-1,y+1))
+    simplices = trimesh.dframe([0, 1, 2])
+    verts = trimesh.nodes.dframe([0, 1, 3])
+    for c, dtype in zip(simplices.columns[:3], simplices.dtypes):
+        if dtype.kind != 'i':
+            simplices[c] = simplices[c].astype('int')
+    result=cvs.trimesh(verts, simplices, mesh=ds.utils.mesh(verts, simplices), agg=ds.mean('z'))
+    return result.sel(x=x,y=y).values.tolist()
 
 class GWHeadAnimator(param.Parameterized):
     # layer = param.Integer(default=1, bounds=(1,4))
