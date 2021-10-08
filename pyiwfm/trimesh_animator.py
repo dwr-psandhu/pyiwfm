@@ -141,6 +141,7 @@ class GWHeadAnimator(param.Parameterized):
         #print('Called view')
         if self.dmap is None:
             self.dmap = hv.DynamicMap(self.update_mesh, kdims=['year', 'depth'], cache_size=1)
+            self.dmap = self.dmap.redim.values(year=self.dfgwh[0].index, depth=[False, True])
         # create mesh and contours
         if self.overlay is None:
             mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'))
@@ -210,9 +211,9 @@ def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_fil
 
 def build_description_pane():
     return pn.pane.Markdown('''
-    # Groundwater levels from C2VSIM 
+    # Groundwater levels from IWFM 
 
-    The map below displays the Groundwater depth from surface to layer 1 of C2VSIM. The values are in units of feet. 
+    The map below displays the Groundwater depth from surface to layer 1 of IWFM. The values are in units of feet. 
 
     ## Controls
 
@@ -243,7 +244,7 @@ def build_panel(gwa):
     controls_pane = pn.Column(color_controls)  # ,year_depth_controls)
     # create final layout with controls on top and map view at bottom
     gwpane = pn.GridSpec(sizing_mode='scale_both')
-    gwpane[0, 0:3] = pn.Accordion(('Description', build_description_pane()), active=[0])
+    gwpane[0, 0:3] = pn.Accordion(('Description', build_description_pane()))
     gwpane[1, 0:3] = controls_pane
     #map_pane=pn.interact(self.view, year=self.year, depth=self.depth)
     map_pane = pn.Column(gwa.viewmap)
