@@ -116,7 +116,7 @@ class GWHeadAnimator(param.Parameterized):
                        'tools': ['hover'], 'alpha': 0.5, 'logz': False,
                        'min_width': 900, 'min_height': 700}  # 'clim': (0,100)}
         self.shaded_opts = self.hvopts.copy()
-        for key in ['cmap', 'colorbar', 'logz']:
+        for key in ['cmap', 'colorbar', 'logz', 'tools']:
             self.shaded_opts.pop(key)
         self.overlay = None
         self.dmap = None
