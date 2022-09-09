@@ -2,16 +2,20 @@ from argparse import ArgumentParser
 from pyiwfm import __version__
 import pyiwfm
 
+def serve(app, **kwargs):
+    import panel as pn
+    pn.extension()
+    pn.serve(app, **kwargs)
 
-def start_trimesh_animator(args):
+def start_trimesh_animator(args, extra_args):
     print('starting trimesh animator: ', args.elements_file)
+    print(args)
+    print(extra_args)
     from pyiwfm import trimesh_animator
     gwa = trimesh_animator.build_gwh_animator(
         args.elements_file, args.nodes_file, args.strat_file,
         args.head_file, gw_head_file_base=args.head_file_base)
-    import panel as pn
-    pn.extension()
-    pn.serve(trimesh_animator.build_panel(gwa))
+    serve(trimesh_animator.build_panel(gwa))
 
 
 def start_gwh_obs_nodes(args):
@@ -215,8 +219,8 @@ def cli(args=None):
                                   help='output directory to write out shapefile information')
     parser_elements_gis.set_defaults(func=start_elements_gis)
     # Now call the appropriate response.
-    pargs = p.parse_args(args)
-    pargs.func(pargs)
+    pargs, extra_args = p.parse_known_args(args)
+    pargs.func(pargs, extra_args)
     return
 
 

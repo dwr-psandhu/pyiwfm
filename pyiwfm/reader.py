@@ -3,6 +3,15 @@ import pandas as pd
 import os
 import re
 
+def load_or_cache(file, **kwargs):
+    cache_file = file+'.pik'
+    if not os.path.exists(cache_file):
+        df = pd.read_csv(file, **kwargs)
+        df.to_pickle(cache_file)
+    else:
+        df = pd.read_pickle(cache_file)
+    return df
+
 
 def read_elements(file):
     with open(file, 'r') as fh:

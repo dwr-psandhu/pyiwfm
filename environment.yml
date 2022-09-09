@@ -1,7 +1,7 @@
 name: env_iwfm
 
 channels:
-  - defaults
+#  - defaults
   - conda-forge
  
 dependencies:
