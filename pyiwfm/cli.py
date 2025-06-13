@@ -220,7 +220,16 @@ def cli(args=None):
     parser_elements_gis.set_defaults(func=start_elements_gis)
     # Now call the appropriate response.
     pargs, extra_args = p.parse_known_args(args)
-    pargs.func(pargs, extra_args)
+    
+    # Check if the handler function accepts extra_args
+    import inspect
+    func_sig = inspect.signature(pargs.func)
+    if len(func_sig.parameters) > 1:
+        # Function accepts both args
+        pargs.func(pargs, extra_args)
+    else:
+        # Function only accepts the first arg
+        pargs.func(pargs)
     return
 
 

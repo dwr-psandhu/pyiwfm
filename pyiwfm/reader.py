@@ -19,7 +19,7 @@ def read_elements(file):
         while line.find('IE') < 0 and line.find('IDE(1)') < 0:
             line = fh.readline()
         fh.readline()
-        dfe = pd.read_csv(fh, sep='\s+',
+        dfe = pd.read_csv(fh, sep=r'\s+',
                           header=None, names=['1', '2', '3', '4', '5'],
                           index_col=0, comment='C')
     if len(dfe.columns) == 4:
@@ -33,7 +33,7 @@ def read_nodes(file):
         while line.find('/ND') < 0:
             line = fh.readline()
         fh.readline()
-        return pd.read_csv(fh, sep='\s+',
+        return pd.read_csv(fh, sep=r'\s+',
                            header=None, names=['x', 'y'],
                            index_col=0, comment='C')
 
@@ -44,7 +44,7 @@ def read_nodes(file):
         while line.find('/ND') < 0:
             line = fh.readline()
         fh.readline()
-        return pd.read_csv(fh, sep='\s+',
+        return pd.read_csv(fh, sep=r'\s+',
                            header=None, names=['x', 'y'],
                            index_col=0, comment='C')
 
@@ -54,14 +54,14 @@ def read_hydrograph(file):
         line = fh.readline()
         while line.find('/ NOUTH') < 0:
             line = fh.readline()
-        nrows = int(re.findall('\d+', line)[0])
+        nrows = int(re.findall(r'\d+', line)[0])
         line = fh.readline()  # skip next line before continuing
         line = fh.readline()
         while line.startswith('C'):
             pos = fh.tell()
             line = fh.readline()
         fh.seek(pos)
-        return pd.read_csv(fh, sep='\s+',
+        return pd.read_csv(fh, sep=r'\s+',
                            header=None,
                            names=['iouthl', 'x', 'y', 'iouth', 'sep', 'Calibration_ID'],
                            nrows=nrows)
@@ -84,7 +84,7 @@ def read_stratigraphy(file):
             line = fh.readline()
         fh.readline()
         cols = ['NodeID', 'GSE'] + layer_cols
-        return pd.read_csv(fh, sep='\s+', comment='C', index_col=0,
+        return pd.read_csv(fh, sep=r'\s+', comment='C', index_col=0,
                            header=None, names=cols, usecols=cols)
 
 
@@ -109,10 +109,10 @@ def rearrange(df0, drop_first=False):
 
 
 def read_gwhead(gwheadfile, nlayers):
-    dfh = pd.read_fwf(gwheadfile, skiprows=5, sep='\s+', nrows=1)
+    dfh = pd.read_fwf(gwheadfile, skiprows=5, sep=r'\s+', nrows=1)
     colspecs = [(i * 12 + 22, i * 12 + 34) for i in range(0, len(dfh.columns))]
     colspecs = [(0, 22)] + colspecs
-    df = pd.read_fwf(gwheadfile, skiprows=6, header=None, sep='\s+', colspecs=colspecs)
+    df = pd.read_fwf(gwheadfile, skiprows=6, header=None, sep=r'\s+', colspecs=colspecs)
     # 4 layers --> 4 dataframes, one for each layer
     layer_df = {i: df.iloc[i::nlayers] for i in range(nlayers)}
     # get index from first layer as a time index
