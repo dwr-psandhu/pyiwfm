@@ -27,7 +27,7 @@ allow the commands below to access the environment.yml file that is needed to se
 The above command ensures that strict channel priority is used when creating the environment.
 The environment will be named env_iwfm by default and will contain all the dependencies needed. 
 
-Finally, clone this directory and change directory to it and install it as followsd
+Finally, clone this directory and change directory to it and install it as follows
 
 ::
 

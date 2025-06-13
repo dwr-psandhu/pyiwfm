@@ -1,0 +1,91 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyiwfm"
+description = "Python utilities for IWFM"
+readme = "README.rst"
+authors = [
+    {name = "Nicky Sandhu", email = "psandhu@water.ca.gov"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+]
+keywords = ["pyiwfm"]
+requires-python = ">=3.7"
+dynamic = ["version"]
+dependencies = [
+    # data
+    "pandas",
+    "xarray",
+    "scikit-learn",
+    "statsmodels",
+    "dask",
+    "numba",
+    # visualization
+    "pyepsg",
+    "geopandas",
+    "holoviews",
+    "hvplot",
+    "matplotlib",
+    "bokeh",
+    "geoviews",
+    "ipyleaflet",
+    "spatialpandas",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dwr_psandhu/pyiwfm"
+"Bug Tracker" = "https://github.com/dwr_psandhu/pyiwfm/issues"
+
+[project.scripts]
+pyiwfm = "pyiwfm.cli:cli"
+
+[tool.setuptools]
+packages = ["pyiwfm"]
+
+[tool.setuptools_scm]
+fallback_version = "0.0.1"
+write_to = "pyiwfm/_version.py"
+
+[tool.pytest.ini_options]
+norecursedirs = [
+    ".*",
+    "*.egg*",
+    "build",
+    "dist",
+    "conda.recipe",
+    ".git",
+    "benchmarks",
+    ".asv"
+]
+addopts = """
+    --junitxml=junit.xml
+    --ignore setup.py
+    --ignore run_test.py
+    --tb native
+    --strict-markers
+    --durations=20
+"""
+markers = [
+    "serial: execute test serially (to avoid race conditions)"
+]
+
+[tool.flake8]
+max-line-length = 100
+ignore = ["E122", "E123", "E126", "E127", "E128", "E731", "E722"]
+exclude = [
+    "build",
+    "pyiwfm/_version.py",
+    "tests",
+    "conda.recipe",
+    ".git",
+    "benchmarks",
+    ".asv"
+]

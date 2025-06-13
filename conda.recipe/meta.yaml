@@ -1,8 +1,9 @@
-{% set data = load_setup_py_data() %}
+{% set name = "pyiwfm" %}
+{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.1') %}
 
 package:
-  name: pyiwfm
-  version: {{ data['version'] }}
+  name: {{ name|lower }}
+  version: {{ version }}
 
 source:
   path: ..
@@ -16,9 +17,7 @@ build:
   noarch: python
   
   entry_points:
-    {% for entry in data['entry_points']['console_scripts'] %}
-      - {{ entry.split('=')[0].strip() }} = {{ entry.split('=')[1].strip() }}
-    {% endfor %}
+      - pyiwfm = pyiwfm.cli:cli
   
 
 requirements:
@@ -30,11 +29,24 @@ requirements:
     - python
     - pip
   run:
-    - python
-    # dependencies are defined in setup.py
-    {% for dep in data['install_requires'] %}
-    - {{ dep.lower() }}
-    {% endfor %}
+    - python >=3.7
+    # data
+    - pandas
+    - xarray
+    - scikit-learn
+    - statsmodels
+    - dask
+    - numba
+    # visualization
+    - pyepsg
+    - geopandas
+    - holoviews
+    - hvplot
+    - matplotlib
+    - bokeh
+    - geoviews
+    - ipyleaflet
+    - spatialpandas
 
 test:
   source_files:
