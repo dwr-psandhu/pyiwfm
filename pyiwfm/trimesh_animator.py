@@ -236,25 +236,50 @@ def build_description_pane():
 
 
 def build_panel(gwa):
+    # Define control components for the color controls tab
     col1 = pn.Column(gwa.param.draw_contours, gwa.param.do_shading)
     col2 = pn.Column(gwa.param.fix_color_range, gwa.param.color_range)
-    color_controls = pn.Row(col1, col2)
-    # year_depth_controls=pn.Column(pn.Param(gwa.param.year,widgets={'year':pn.widgets.DiscretePlayer}),gwa.param.depth)
-    # param_controls=pn.Column(pn.Param(self.param.year, widgets={'year': pn.widgets.DiscreteSlider}))
-    controls_pane = pn.Column(color_controls)  # ,year_depth_controls)
-    # create final layout with controls on top and map view at bottom
-    gwpane = pn.GridSpec(sizing_mode='scale_both')
-    gwpane[0, 0:3] = pn.Accordion(('Description', build_description_pane()))
-    gwpane[1, 0:3] = controls_pane
-    #map_pane=pn.interact(self.view, year=self.year, depth=self.depth)
-    map_pane = pn.Column(gwa.viewmap)
-    # print(map_pane)
-    gwpane[2:4, 0:3] = map_pane
-
-    gwpane.servable()
-    return gwpane
+    color_controls = pn.Column(
+        pn.pane.Markdown("### Color Controls"),
+        col1, 
+        col2,
+        sizing_mode='stretch_width'
+    )
+    
+    # Create description pane for the info tab
+    description_pane = pn.Column(
+        build_description_pane(),
+        sizing_mode='stretch_width'
+    )
+    
+    # Create tabs for sidebar
+    sidebar_tabs = pn.Tabs(
+        ("Controls", color_controls),
+        ("Info", description_pane)
+    )
+    
+    # Define sidebar with tabs
+    sidebar = pn.Column(
+        sidebar_tabs,
+        sizing_mode='stretch_width'
+    )
+    
+    # Define map area that is responsive
+    map_pane = pn.Column(gwa.viewmap, sizing_mode='stretch_both')
+    
+    # Use Vanilla Template
+    template = pn.template.VanillaTemplate(
+        title="Groundwater Level Animator",
+        sidebar=sidebar,
+        main=map_pane,
+        sidebar_width=350
+    )
+    
+    template.servable()
+    return template
 
 
 def show_animator(edge_file, node_file, gse_file, gw_head_file, recache=False):
     gwa = build_gwh_animator(edge_file, node_file, gse_file, gw_head_file, recache=recache)
-    pn.serve(build_panel(gwa))
+    template = build_panel(gwa)
+    pn.serve(template)
