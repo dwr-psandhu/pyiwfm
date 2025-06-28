@@ -283,3 +283,43 @@ def show_animator(edge_file, node_file, gse_file, gw_head_file, recache=False):
     gwa = build_gwh_animator(edge_file, node_file, gse_file, gw_head_file, recache=recache)
     template = build_panel(gwa)
     pn.serve(template)
+
+
+def show_side_by_side_animator(edge_file1, node_file1, gse_file1, gw_head_file1, 
+                               edge_file2, node_file2, gse_file2, gw_head_file2, 
+                               recache=False):
+    gwa1 = build_gwh_animator(edge_file1, node_file1, gse_file1, gw_head_file1, recache=recache)
+    gwa2 = build_gwh_animator(edge_file2, node_file2, gse_file2, gw_head_file2, recache=recache)
+    gwa2.param.draw_contours = gwa1.param.draw_contours  # Ensure both animators have the same settings
+    gwa2.param.do_shading = gwa1.param.do_shading
+    gwa2.param.fix_color_range = gwa1.param.fix_color_range
+    gwa2.param.color_range = gwa1.param.color_range
+    # Set up parameter linking using watchers
+    def sync_param(name, event):
+        # Block the watcher temporarily to avoid infinite loops
+        setattr(gwa2, name, event.new)
+    
+    # Set up bidirectional watchers for each parameter
+    for param_name in ['draw_contours', 'do_shading', 'fix_color_range', 'color_range']:
+        gwa1.param.watch(lambda event, name=param_name: sync_param(name, event), param_name)
+    
+    @param.depends(gwa1.param.draw_contours, gwa1.param.do_shading,
+                   gwa1.param.fix_color_range, gwa1.param.color_range)
+    def viewmap(draw_contours, do_shading, fix_color_range, color_range):
+        gwa2.draw_contours = draw_contours
+        gwa2.do_shading = do_shading
+        gwa2.fix_color_range = fix_color_range
+        gwa2.color_range = color_range
+        return gwa1.viewmap() + gwa2.viewmap()
+    # Create a dynamic map that updates both animators
+    map_pane = pn.Column(viewmap, sizing_mode='stretch_both')
+    template1 = build_panel(gwa1)
+    template = pn.template.VanillaTemplate(
+        title="Groundwater Level Animator Side by Side",
+        sidebar=template1.sidebar,
+        main=map_pane,
+        sidebar_width=350
+    )
+    template.servable()
+    return template
+
