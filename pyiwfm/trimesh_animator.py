@@ -99,6 +99,17 @@ class GWHeadAnimator(param.Parameterized):
     color_range = param.Range(default=(-1000., 1000.), doc='Range of Color Bar')
 
     def __init__(self, dfe, dfn0, dfgwh, dfgse, **kwargs):
+        self.cmap_rainbow = process_cmap("rainbow", provider="colorcet")
+        self.tiles = hv.element.tiles.CartoLight().opts(alpha=1.0).opts(responsive=True, min_height=600)
+        self.hvopts = {'cmap': self.cmap_rainbow, 'colorbar': True,
+                       'tools': ['hover'], 'alpha': 0.5, 'logz': False,
+                       'min_width': 900, 'min_height': 700}  # 'clim': (0,100)}
+        self.hvopts['title'] = kwargs.pop('title','')
+        self.shaded_opts = self.hvopts.copy()
+        for key in ['cmap', 'colorbar', 'logz', 'tools']:
+            self.shaded_opts.pop(key)
+        self.overlay = None
+        self.dmap = None
         super().__init__(**kwargs)
         self.trimesh = hv.TriMesh((build_trimesh_simplex(dfe), hv.Points(dfn0, vdims='z')))
         self.dfgwh = dfgwh
@@ -110,16 +121,6 @@ class GWHeadAnimator(param.Parameterized):
         # self.param.year.objects=list(self.dfgwh[self.layer-1].index)
         # self.year=self.dfgwh[self.layer-1].index[0]
         #
-        self.cmap_rainbow = process_cmap("rainbow", provider="colorcet")
-        self.tiles = hv.element.tiles.CartoLight().opts(alpha=1.0).opts(responsive=True, min_height=600)
-        self.hvopts = {'cmap': self.cmap_rainbow, 'colorbar': True,
-                       'tools': ['hover'], 'alpha': 0.5, 'logz': False,
-                       'min_width': 900, 'min_height': 700}  # 'clim': (0,100)}
-        self.shaded_opts = self.hvopts.copy()
-        for key in ['cmap', 'colorbar', 'logz', 'tools']:
-            self.shaded_opts.pop(key)
-        self.overlay = None
-        self.dmap = None
 
     def keep_zoom(self, x_range, y_range):
         self.startX, self.endX = x_range
@@ -191,11 +192,13 @@ class GWHeadAnimator(param.Parameterized):
         else:
             self.overlay = overlay.redim.range(
                 x=(self.startX, self.endX), y=(self.startY, self.endY))
+        if 'title' in self.hvopts:
+            self.overlay = self.overlay.opts(title=self.hvopts['title'])
         #self.overlay.opts(title='%s Groundwater: %s'%( "Depth to" if self.depth else "Level of", self.year))
         return self.overlay
 
 
-def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_file, gw_head_file_base=None, recache=False):
+def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_file, gw_head_file_base=None, recache=False, title=''):
     # load data from files and convert to map crs
     grid_data = pyiwfm.load_data(elements_file, nodes_file, stratigraphy_file)
     dfgwh = pyiwfm.load_gwh(gw_head_file, grid_data.nlayers, recache=recache)
@@ -206,7 +209,9 @@ def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_fil
     dfgw0 = dfgwh[0]
     dfn0['z'] = dfgw0.iloc[0, :].values
     # make animator
-    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, name='Groundwater Level %s Animator' % ('' if gw_head_file_base == None else 'Difference'))
+    return GWHeadAnimator(grid_data.elements, dfn0, dfgwh, grid_data.stratigraphy, 
+                          name='Groundwater Level %s Animator' % ('' if gw_head_file_base == None else 'Difference'),
+                          title=title)
 
 
 def build_description_pane():
@@ -287,9 +292,9 @@ def show_animator(edge_file, node_file, gse_file, gw_head_file, recache=False):
 
 def show_side_by_side_animator(edge_file1, node_file1, gse_file1, gw_head_file1, 
                                edge_file2, node_file2, gse_file2, gw_head_file2, 
-                               recache=False):
-    gwa1 = build_gwh_animator(edge_file1, node_file1, gse_file1, gw_head_file1, recache=recache)
-    gwa2 = build_gwh_animator(edge_file2, node_file2, gse_file2, gw_head_file2, recache=recache)
+                               recache=False, title1='1', title2='2'):
+    gwa1 = build_gwh_animator(edge_file1, node_file1, gse_file1, gw_head_file1, recache=recache, title=title1)
+    gwa2 = build_gwh_animator(edge_file2, node_file2, gse_file2, gw_head_file2, recache=recache, title=title2)
     gwa2.param.draw_contours = gwa1.param.draw_contours  # Ensure both animators have the same settings
     gwa2.param.do_shading = gwa1.param.do_shading
     gwa2.param.fix_color_range = gwa1.param.fix_color_range
