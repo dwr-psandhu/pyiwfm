@@ -9,6 +9,8 @@ import dask.dataframe as dd
 import datashader as ds
 import holoviews as hv
 import holoviews.operation.datashader as hd
+import geoviews as gv
+import geoviews.feature as gf
 import numpy as np
 import pandas as pd
 import panel as pn
@@ -31,10 +33,8 @@ pn.extension()
 # from holoviews.util.transform import lon_lat_to_easting_northing as ll2en # only in holoviews 1.14 which breaks this code
 
 
-def convertxy(df, src_crs='26910', target_crs='3857'):
-    epsgsrc = ccrs.epsg(src_crs)
-    epsgtgt = ccrs.epsg(target_crs)
-    xyz = epsgtgt.transform_points(epsgsrc, df.x.values, df.y.values, None)
+def convertxy(df, src_crs=ccrs.epsg('26910'), target_crs=ccrs.PlateCarree()):
+    xyz = target_crs.transform_points(src_crs, df.x.values, df.y.values, None)
     dfm = df.copy()
     dfm.x = xyz[:, 0]
     dfm.y = xyz[:, 1]
@@ -100,7 +100,9 @@ class GWHeadAnimator(param.Parameterized):
 
     def __init__(self, dfe, dfn0, dfgwh, dfgse, **kwargs):
         self.cmap_rainbow = process_cmap("rainbow", provider="colorcet")
-        self.tiles = hv.element.tiles.CartoLight().opts(alpha=1.0).opts(responsive=True, min_height=600)
+        self.tiles = gv.tile_sources.CartoLight().opts(
+            alpha=1.0, responsive=True, min_height=600,)
+        #hv.element.tiles.CartoLight().opts(alpha=1.0).opts(responsive=True, min_height=600)
         self.hvopts = {'cmap': self.cmap_rainbow, 'colorbar': True,
                        'tools': ['hover'], 'alpha': 0.5, 'logz': False,
                        'min_width': 900, 'min_height': 700}  # 'clim': (0,100)}
@@ -111,7 +113,8 @@ class GWHeadAnimator(param.Parameterized):
         self.overlay = None
         self.dmap = None
         super().__init__(**kwargs)
-        self.trimesh = hv.TriMesh((build_trimesh_simplex(dfe), hv.Points(dfn0, vdims='z')))
+        self.trimesh = gv.TriMesh((build_trimesh_simplex(dfe), gv.Points(dfn0, vdims='z')))
+        self.trimesh = gv.operation.project(self.trimesh)
         self.dfgwh = dfgwh
         self.dfgse = dfgse
         self.layer = 1  # layers are 1-based
@@ -161,7 +164,7 @@ class GWHeadAnimator(param.Parameterized):
                 self.hvopts.pop('clim')
         mesh = mesh.opts(**self.hvopts)
         self.mesh = mesh
-        elements = [self.tiles, mesh]
+        elements = [self.tiles, mesh] #[gf.land, mesh]
         if self.do_shading:
             mesh = mesh.opts(alpha=0, colorbar=False)
             shaded_args = {'cmap': self.cmap_rainbow}
@@ -175,7 +178,7 @@ class GWHeadAnimator(param.Parameterized):
                 vlims = self.hvopts['clim']
                 # contour_args['levels']=[vlims[0]+(vlims[1]-vlims[0])/10*i for i in range(11)]
                 contour_args['levels'] = calc_levels(vlims[0], vlims[1])
-            contours = hv.operation.contours(mesh, **contour_args).opts(**self.hvopts)
+            contours = gv.operation.contours(mesh, **contour_args).opts(**self.hvopts)
             self._contours = contours
             elements.append(contours)
         overlay = hv.Overlay(elements)
