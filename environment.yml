@@ -27,4 +27,6 @@ dependencies:
   - geoviews
   - ipyleaflet
   - spatialpandas
+  # shapefiles
+  - fiona
 # pip install -e .

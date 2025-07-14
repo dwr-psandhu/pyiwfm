@@ -288,6 +288,7 @@ pn.serve(
     "head_nodes_fg": head_nodes_fg,
     "head_obs_node_fg": head_obs_node_fg,
     "head_calib_head_obs_nodes_cg": head_calib_head_obs_nodes_cg},
-    port=80, address="0.0.0.0", websocket_origin="*"
+    port=80, address="0.0.0.0", websocket_origin="*",
+    websocket_max_message_size=1024*1024*48,
 )
 

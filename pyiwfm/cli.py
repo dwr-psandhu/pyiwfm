@@ -218,6 +218,37 @@ def cli(args=None):
     parser_elements_gis.add_argument('-o', '--output-dir', type=str,
                                   help='output directory to write out shapefile information')
     parser_elements_gis.set_defaults(func=start_elements_gis)
+    # add gwh-obs-interpolater command
+    parser_gwh_obs_interpolater = sub_p.add_parser(
+        'gwh-obs-interpolater', help='interpolate groundwater head observations to mesh nodes')
+    parser_gwh_obs_interpolater.add_argument('--elements-file', type=str,
+                                 required=True, help='path to elements.dat file')
+    parser_gwh_obs_interpolater.add_argument('--nodes-file', type=str, required=True,
+                                 help='path to nodes.dat file')
+    parser_gwh_obs_interpolater.add_argument('--strat-file', type=str, required =True,
+                                 help='path to stratigraphy.dat file')
+    parser_gwh_obs_interpolater.add_argument('--stations-file', type=str, required=True,
+                                 help='path to groundwater periodic stations file')
+    parser_gwh_obs_interpolater.add_argument('--measurements-file', type=str, required  =True,
+                                 help='path to groundwater periodic measurements file')
+    parser_gwh_obs_interpolater.add_argument('--output-file', type=str, required=True,
+                                 help='path to output file to save interpolated results')
+    parser_gwh_obs_interpolater.set_defaults(func=pyiwfm.gwh_obs_interpolater.interpolate_observations)
+    # add gwh-obs-interpolater-show command
+    parser_gwh_obs_interpolater_show = sub_p.add_parser(
+        'gwh-obs-interpolater-show', help='show interpolated groundwater head observations')
+    parser_gwh_obs_interpolater_show.add_argument('--elements-file', type=str,
+                                    required=True, help='path to elements.dat file')
+    parser_gwh_obs_interpolater_show.add_argument('--nodes-file', type=str, required=True,
+                                    help='path to nodes.dat file')
+    parser_gwh_obs_interpolater_show.add_argument('--strat-file', type=str,
+                                    required=True,
+                                    help='path to stratigraphy.dat file')
+    parser_gwh_obs_interpolater_show.add_argument('--interpolated-file', type=str,
+                                    required=True, help='path to interpolated output file')
+    parser_gwh_obs_interpolater_show.add_argument('--title', type=str, default='Groundwater Head Interpolation',
+                                    help='Title for the visualization panel')
+    parser_gwh_obs_interpolater_show.set_defaults(func=pyiwfm.gwh_obs_interpolater.show_obs_interpolation)
     # Now call the appropriate response.
     pargs, extra_args = p.parse_known_args(args)
     

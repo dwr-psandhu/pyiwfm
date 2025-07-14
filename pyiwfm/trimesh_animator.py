@@ -106,7 +106,7 @@ class GWHeadAnimator(param.Parameterized):
         self.hvopts = {'cmap': self.cmap_rainbow, 'colorbar': True,
                        'tools': ['hover'], 'alpha': 0.5, 'logz': False,
                        'min_width': 900, 'min_height': 700}  # 'clim': (0,100)}
-        self.hvopts['title'] = kwargs.pop('title','')
+        self.title = kwargs.pop('title','')
         self.shaded_opts = self.hvopts.copy()
         for key in ['cmap', 'colorbar', 'logz', 'tools']:
             self.shaded_opts.pop(key)
@@ -183,7 +183,6 @@ class GWHeadAnimator(param.Parameterized):
             elements.append(contours)
         overlay = hv.Overlay(elements)
         overlay = overlay.collate()
-        # ,title=f'{self.year},{self.depth}')
         overlay = overlay.opts(active_tools=['pan', 'wheel_zoom'])
         if self.overlay is None:
             self.startX, self.endX = self.dmap.range('x')
@@ -195,8 +194,9 @@ class GWHeadAnimator(param.Parameterized):
         else:
             self.overlay = overlay.redim.range(
                 x=(self.startX, self.endX), y=(self.startY, self.endY))
-        if 'title' in self.hvopts:
-            self.overlay = self.overlay.opts(title=self.hvopts['title'])
+        if self.title:
+            title = self.title if self.title else 'Groundwater' + f' {self.year}' + f'Depth' if self.depth else f'Level'
+            self.overlay = self.overlay.opts(title=title)
         #self.overlay.opts(title='%s Groundwater: %s'%( "Depth to" if self.depth else "Level of", self.year))
         return self.overlay
 
@@ -298,19 +298,9 @@ def show_side_by_side_animator(edge_file1, node_file1, gse_file1, gw_head_file1,
                                recache=False, title1='1', title2='2'):
     gwa1 = build_gwh_animator(edge_file1, node_file1, gse_file1, gw_head_file1, recache=recache, title=title1)
     gwa2 = build_gwh_animator(edge_file2, node_file2, gse_file2, gw_head_file2, recache=recache, title=title2)
-    gwa2.param.draw_contours = gwa1.param.draw_contours  # Ensure both animators have the same settings
-    gwa2.param.do_shading = gwa1.param.do_shading
-    gwa2.param.fix_color_range = gwa1.param.fix_color_range
-    gwa2.param.color_range = gwa1.param.color_range
-    # Set up parameter linking using watchers
-    def sync_param(name, event):
-        # Block the watcher temporarily to avoid infinite loops
-        setattr(gwa2, name, event.new)
-    
-    # Set up bidirectional watchers for each parameter
-    for param_name in ['draw_contours', 'do_shading', 'fix_color_range', 'color_range']:
-        gwa1.param.watch(lambda event, name=param_name: sync_param(name, event), param_name)
-    
+    return build_side_by_side_animator_panel(gwa1, gwa2)    
+
+def build_side_by_side_animator_panel(gwa1, gwa2, title='Groundwater Level Animator Side by Side'):
     @param.depends(gwa1.param.draw_contours, gwa1.param.do_shading,
                    gwa1.param.fix_color_range, gwa1.param.color_range)
     def viewmap(draw_contours, do_shading, fix_color_range, color_range):
@@ -323,11 +313,10 @@ def show_side_by_side_animator(edge_file1, node_file1, gse_file1, gw_head_file1,
     map_pane = pn.Column(viewmap, sizing_mode='stretch_both')
     template1 = build_panel(gwa1)
     template = pn.template.VanillaTemplate(
-        title="Groundwater Level Animator Side by Side",
+        title=title,
         sidebar=template1.sidebar,
         main=map_pane,
-        sidebar_width=350
+        sidebar_width=150
     )
     template.servable()
     return template
-
