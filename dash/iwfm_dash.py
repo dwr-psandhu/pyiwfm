@@ -235,6 +235,39 @@ def trimesh_animator_fg_diff():
     p=trimesh_animator.build_panel(gwa) # servable pane
     return p
 
+@deferred_load(title="C2VSim Fine Grid v1.5 vs Observed Heads Animator")
+def trimesh_dual_animator_obs_vs_fg15():
+    from pyiwfm import trimesh_animator, gwh_obs_interpolater
+    elements_file = 'tests/data/c2vsimfg_v1.5_model/Preprocessor/C2VSimFG_Elements.dat'
+    nodes_file = 'tests/data/c2vsimfg_v1.5_model/Preprocessor/C2VSimFG_Nodes.dat'
+    strat_file = 'tests/data/c2vsimfg_v1.5_model/Preprocessor/C2VSimFG_Stratigraphy.dat'
+    head_file = 'tests/data/c2vsimfg_v1.5_model/Results/C2VSimFG_GW_HeadAll.out'
+    obs_feather_file = 'tests/data/gwdata/periodic_gwl.2025.07/interpolated.finegrid.GSE.feather'
+
+    animobs = gwh_obs_interpolater.build_gwh_animator(elements_file, nodes_file, strat_file, obs_feather_file, title='Groundwater Periodic')
+    animfg = trimesh_animator.build_gwh_animator(
+        elements_file, nodes_file, strat_file, head_file, title='Groundwater c2vsimfg_v1.5')
+    template = trimesh_animator.build_side_by_side_animator_panel(
+        animobs, animfg, title='Groundwater Level Animator Side by Side')
+
+    return template
+
+@deferred_load(title="C2VSim Coarse Grid 1227 vs Observed Heads Animator")
+def trimesh_dual_animator_obs_vs_cg1227():
+    from pyiwfm import trimesh_animator, gwh_obs_interpolater
+    elements_file = 'tests/data/20250604_1227par_PstCld_best_pars/C2VSimCG/Preprocessor/C2VSimCG_Elements.dat'
+    nodes_file = 'tests/data/20250604_1227par_PstCld_best_pars/C2VSimCG/Preprocessor/C2VSimCG_Nodes.dat'
+    strat_file = 'tests/data/20250604_1227par_PstCld_best_pars/C2VSimCG/Preprocessor/C2VSimCG_Stratigraphy.dat'
+    head_file = 'tests/data/20250604_1227par_PstCld_best_pars/C2VSimCG/Results/C2VSimCG_GW_HeadAll.out'
+    obs_feather_file = 'tests/data/gwdata/periodic_gwl.2025.07/interpolated.coarsegrid.GSE.feather'
+
+    animobs = gwh_obs_interpolater.build_gwh_animator(elements_file, nodes_file, strat_file, obs_feather_file, title='Groundwater Periodic')
+    animcg = trimesh_animator.build_gwh_animator(
+        elements_file, nodes_file, strat_file, head_file, title='Groundwater c2vsimcg_1227par')
+    template = trimesh_animator.build_side_by_side_animator_panel(
+        animobs, animcg, title='Groundwater Level Animator Side by Side')
+
+    return template
 
 def head_nodes_fg():
     from pyiwfm import gwh_tsplotter
@@ -284,6 +317,8 @@ pn.serve(
     "dual_animator_fg_15_cg_v2": trimesh_dual_animator_fg_15_cg_v2,
     "dual_animator_cg_1227_vs_fg_15": trimesh_dual_animator_cg_1227_vs_fg_15,
     "dual_animator_fg_15_vs_fg_v1": trimesh_dual_animator_fg_15_vs_fg_v1,
+    "dual_animator_obs_vs_fg15": trimesh_dual_animator_obs_vs_fg15,
+    "dual_animator_obs_vs_cg1227": trimesh_dual_animator_obs_vs_cg1227,
     "animator_fg_diff":trimesh_animator_fg_diff,
     "head_nodes_fg": head_nodes_fg,
     "head_obs_node_fg": head_obs_node_fg,

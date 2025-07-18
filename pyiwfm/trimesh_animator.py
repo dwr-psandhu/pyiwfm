@@ -88,18 +88,34 @@ def calculate_value_at(trimesh,x,y):
     result=cvs.trimesh(verts, simplices, mesh=ds.utils.mesh(verts, simplices), agg=ds.mean('z'))
     return result.sel(x=x,y=y).values.tolist()
 
+linear_perceptual_cmaps = [
+    'rainbow4',    # perceptual rainbow
+    'fire',        # perceptually uniform warm
+    'kbc',         # cool perceptual ramp
+    'bmy',         # blue-mid-yellow
+    'bkr',         # blue-black-red
+    'kr',          # black-red-yellow
+    'bgyw',        # blue-green-yellow-white
+    'gray',        # grayscale perceptual ramp
+    'CET_L17',     # linear perceptual ramp
+    'bwy',         # blue-white-yellow (diverging)
+    'coolwarm'     # diverging, similar to matplotlib's
+]
+
 class GWHeadAnimator(param.Parameterized):
-    # layer = param.Integer(default=1, bounds=(1,4))
-    # year = param.ObjectSelector(default='',objects=['']) # will be set in constructor
-    #depth = param.Boolean(default=True, doc='If true then show depth values else show level (referenced to a datum)')
+    layer = param.Integer(default=1, bounds=(1,4))
+    year = param.ObjectSelector(default='',objects=['']) # will be set in constructor
+    depth = param.Boolean(default=True, doc='If true then show depth values else show level (referenced to a datum)')
     draw_contours = param.Boolean(default=False, doc='Draw contours')
     do_shading = param.Boolean(default=False, doc='Do datashading (holoviz)')
     fix_color_range = param.Boolean(
         default=False, doc='Fix color range to current limits or let it be dynamic')
     color_range = param.Range(default=(-1000., 1000.), doc='Range of Color Bar')
+    color_map = param.Selector(default='rainbow4', objects=linear_perceptual_cmaps, doc='Color Map to use')
 
     def __init__(self, dfe, dfn0, dfgwh, dfgse, **kwargs):
-        self.cmap_rainbow = process_cmap("rainbow", provider="colorcet")
+        self.current_color_map = self.color_map
+        self.cmap_rainbow = process_cmap(self.color_map, provider="colorcet")
         self.tiles = gv.tile_sources.CartoLight().opts(
             alpha=1.0, responsive=True, min_height=600,)
         #hv.element.tiles.CartoLight().opts(alpha=1.0).opts(responsive=True, min_height=600)
@@ -118,11 +134,9 @@ class GWHeadAnimator(param.Parameterized):
         self.dfgwh = dfgwh
         self.dfgse = dfgse
         self.layer = 1  # layers are 1-based
-        #self.year = pn.widgets.DiscretePlayer(name='Year', options=gwa.dfgwh[0].index.to_list(), value=0, loop_policy='loop')
-        #self.depth = pn.widgets.Checkbox(nameme="Depth", default=True)
         # setup parameter based on index
-        # self.param.year.objects=list(self.dfgwh[self.layer-1].index)
-        # self.year=self.dfgwh[self.layer-1].index[0]
+        self.param.year.objects=list(self.dfgwh[self.layer-1].index)
+        self.year=self.dfgwh[self.layer-1].index[0]
         #
 
     def keep_zoom(self, x_range, y_range):
@@ -131,30 +145,34 @@ class GWHeadAnimator(param.Parameterized):
 
     # @param.depends('year','depth')
     def update_mesh(self, year, depth):
-        #print('Called update_mesh')
-        # set the z values based on args
-        if depth:
-            self.trimesh.nodes.data.z = self.dfgse['GSE'].values - \
-                self.dfgwh[self.layer - 1].loc[year, :].values
+        if year not in self.dfgwh[self.layer - 1].index:
+            self.trimesh.nodes.data.z = np.nan
         else:
-            self.trimesh.nodes.data.z = self.dfgwh[self.layer - 1].loc[year, :].values
+            if depth:
+                self.trimesh.nodes.data.z = self.dfgse['GSE'].values - \
+                    self.dfgwh[self.layer - 1].loc[year, :].values
+            else:
+                self.trimesh.nodes.data.z = self.dfgwh[self.layer - 1].loc[year, :].values
         return self.trimesh
 
-    @param.depends('draw_contours', 'do_shading', 'fix_color_range', 'color_range')
+    @param.depends('draw_contours', 'do_shading', 'fix_color_range', 'color_range', 'color_map', watch=True)
     def viewmap(self):
         #print('Called view')
-        if self.dmap is None:
-            self.dmap = hv.DynamicMap(self.update_mesh, kdims=['year', 'depth'], cache_size=1)
-            self.dmap = self.dmap.redim.values(year=self.dfgwh[0].index, depth=[False, True])
+        if self.current_color_map != self.color_map:
+            self.current_color_map = self.color_map
+            # update color map
+            if self.color_map in linear_perceptual_cmaps:
+                self.cmap_rainbow = process_cmap(self.color_map, provider="colorcet")
+            else:
+                self.cmap_rainbow = process_cmap(self.color_map)
+        self.hvopts['cmap'] = self.cmap_rainbow
+        if self.dmap is None:   
+            self.dmap = hv.DynamicMap(self.update_mesh, streams=[self.param.year, self.param.depth], cache_size=1) # kdims=['year', 'depth'], cache_size=1)
+            self.dmap = self.dmap.redim.values(year=self.dfgwh[0].index, depth=[True, False])
         # create mesh and contours
-        if self.overlay is None:
-            mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'))
-        else:
-            mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'),
-                                x_range=(self.startX, self.endX), y_range=(self.startY, self.endY))
+        mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'))
         if self.fix_color_range:
-            meshx = hd.rasterize(self.trimesh, precompute=True, dynamic=False, aggregator=ds.mean('z'),
-                                 x_range=(self.startX, self.endX), y_range=(self.startY, self.endY))
+            meshx = hd.rasterize(self.trimesh, precompute=True, dynamic=False, aggregator=ds.mean('z'))
             if 'clim' not in self.hvopts:
                 self.color_range = (float(meshx.data['x_y z'].min()),
                                     float(meshx.data['x_y z'].max()))
@@ -165,14 +183,12 @@ class GWHeadAnimator(param.Parameterized):
         mesh = mesh.opts(**self.hvopts)
         self.mesh = mesh
         elements = [self.tiles, mesh] #[gf.land, mesh]
-        if self.do_shading:
+        if self.do_shading: # hide mesh but keep it for hover and show shaded 
             mesh = mesh.opts(alpha=0, colorbar=False)
             shaded_args = {'cmap': self.cmap_rainbow}
-            # if 'clim' in self.hvopts:
-            #    shaded_args['clim'] = self.hvopts['clim']
             shaded = hd.shade(mesh, **shaded_args).opts(**self.shaded_opts)
             elements.append(shaded)
-        if self.draw_contours:
+        if self.draw_contours: # add contours layer
             contour_args = {}
             if 'clim' in self.hvopts:
                 vlims = self.hvopts['clim']
@@ -184,21 +200,10 @@ class GWHeadAnimator(param.Parameterized):
         overlay = hv.Overlay(elements)
         overlay = overlay.collate()
         overlay = overlay.opts(active_tools=['pan', 'wheel_zoom'])
-        if self.overlay is None:
-            self.startX, self.endX = self.dmap.range('x')
-            self.startY, self.endY = self.dmap.range('y')
-            self.rangexy = streams.RangeXY(source=self.dmap,
-                                           x_range=(self.startX, self.endX), y_range=(self.startY, self.endY))
-            self.rangexy.add_subscriber(self.keep_zoom)
-            self.overlay = overlay
-        else:
-            self.overlay = overlay.redim.range(
-                x=(self.startX, self.endX), y=(self.startY, self.endY))
         if self.title:
             title = self.title if self.title else 'Groundwater' + f' {self.year}' + f'Depth' if self.depth else f'Level'
-            self.overlay = self.overlay.opts(title=title)
-        #self.overlay.opts(title='%s Groundwater: %s'%( "Depth to" if self.depth else "Level of", self.year))
-        return self.overlay
+            overlay = overlay.opts(title=title)
+        return overlay
 
 
 def build_gwh_animator(elements_file, nodes_file, stratigraphy_file, gw_head_file, gw_head_file_base=None, recache=False, title=''):
@@ -246,7 +251,11 @@ def build_description_pane():
 def build_panel(gwa):
     # Define control components for the color controls tab
     col1 = pn.Column(gwa.param.draw_contours, gwa.param.do_shading)
-    col2 = pn.Column(gwa.param.fix_color_range, gwa.param.color_range)
+    col2 = pn.Column(gwa.param.fix_color_range, gwa.param.color_range, gwa.param.color_map)
+    # create a year player for gwa.param.year
+    year_slider = pn.widgets.DiscretePlayer.from_param(gwa.param.year, name='Year')
+    depth_checkbox = pn.widgets.Checkbox.from_param(gwa.param.depth, name='Depth', sizing_mode='stretch_width')
+    row3 = pn.Row(year_slider, depth_checkbox, sizing_mode='stretch_width')
     color_controls = pn.Column(
         pn.pane.Markdown("### Color Controls"),
         col1, 
@@ -273,8 +282,7 @@ def build_panel(gwa):
     )
     
     # Define map area that is responsive
-    map_pane = pn.Column(gwa.viewmap, sizing_mode='stretch_both')
-    
+    map_pane = pn.Column(row3, gwa.viewmap)
     # Use Vanilla Template
     template = pn.template.VanillaTemplate(
         title="Groundwater Level Animator",
@@ -302,20 +310,34 @@ def show_side_by_side_animator(edge_file1, node_file1, gse_file1, gw_head_file1,
 
 def build_side_by_side_animator_panel(gwa1, gwa2, title='Groundwater Level Animator Side by Side'):
     @param.depends(gwa1.param.draw_contours, gwa1.param.do_shading,
-                   gwa1.param.fix_color_range, gwa1.param.color_range)
-    def viewmap(draw_contours, do_shading, fix_color_range, color_range):
+                   gwa1.param.fix_color_range, gwa1.param.color_range, gwa1.param.color_map)
+    def viewmap(draw_contours, do_shading, fix_color_range, color_range, color_map):
         gwa2.draw_contours = draw_contours
         gwa2.do_shading = do_shading
         gwa2.fix_color_range = fix_color_range
         gwa2.color_range = color_range
+        gwa2.color_map = color_map
         return gwa1.viewmap() + gwa2.viewmap()
     # Create a dynamic map that updates both animators
+    # watch gwa1.param.year and gwa1.param.depth and update gwa2 accordingly
+    gwa2.param.year.objects = gwa1.param.year.objects
+    def sync_year(event):
+        gwa2.year = gwa1.year
+    gwa1.param.watch(sync_year, ['year'], onlychanged=True)
+    def sync_depth(event):
+        gwa2.depth = gwa1.depth
+    gwa1.param.watch(sync_depth, ['depth'], onlychanged=True)
+    gwa2.year = gwa1.year
+    gwa2.depth = gwa1.depth
+    year_slider = pn.widgets.DiscretePlayer.from_param(gwa1.param.year, name='Year')
+    depth_checkbox = pn.widgets.Checkbox.from_param(gwa1.param.depth, name='Depth', sizing_mode='stretch_width')
+    row3 = pn.Row(year_slider, depth_checkbox, sizing_mode='stretch_width')
     map_pane = pn.Column(viewmap, sizing_mode='stretch_both')
     template1 = build_panel(gwa1)
     template = pn.template.VanillaTemplate(
         title=title,
         sidebar=template1.sidebar,
-        main=map_pane,
+        main=pn.Column(row3, map_pane),
         sidebar_width=150
     )
     template.servable()
