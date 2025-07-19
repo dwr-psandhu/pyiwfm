@@ -157,7 +157,6 @@ class GWHeadAnimator(param.Parameterized):
 
     @param.depends('draw_contours', 'do_shading', 'fix_color_range', 'color_range', 'color_map', watch=True)
     def viewmap(self):
-        #print('Called view')
         if self.current_color_map != self.color_map:
             self.current_color_map = self.color_map
             # update color map
@@ -167,22 +166,17 @@ class GWHeadAnimator(param.Parameterized):
                 self.cmap_rainbow = process_cmap(self.color_map)
         self.hvopts['cmap'] = self.cmap_rainbow
         if self.dmap is None:   
-            self.dmap = hv.DynamicMap(self.update_mesh, streams=[self.param.year, self.param.depth], cache_size=1) # kdims=['year', 'depth'], cache_size=1)
+            self.dmap = hv.DynamicMap(self.update_mesh, streams=[self.param.year, self.param.depth], cache_size=1) 
             self.dmap = self.dmap.redim.values(year=self.dfgwh[0].index, depth=[True, False])
         # create mesh and contours
         mesh = hd.rasterize(self.dmap, precompute=True, aggregator=ds.mean('z'))
         if self.fix_color_range:
-            meshx = hd.rasterize(self.trimesh, precompute=True, dynamic=False, aggregator=ds.mean('z'))
-            if 'clim' not in self.hvopts:
-                self.color_range = (float(meshx.data['x_y z'].min()),
-                                    float(meshx.data['x_y z'].max()))
             self.hvopts['clim'] = self.color_range
         else:
             if 'clim' in self.hvopts:
                 self.hvopts.pop('clim')
         mesh = mesh.opts(**self.hvopts)
-        self.mesh = mesh
-        elements = [self.tiles, mesh] #[gf.land, mesh]
+        elements = [self.tiles, mesh]
         if self.do_shading: # hide mesh but keep it for hover and show shaded 
             mesh = mesh.opts(alpha=0, colorbar=False)
             shaded_args = {'cmap': self.cmap_rainbow}
@@ -192,7 +186,6 @@ class GWHeadAnimator(param.Parameterized):
             contour_args = {}
             if 'clim' in self.hvopts:
                 vlims = self.hvopts['clim']
-                # contour_args['levels']=[vlims[0]+(vlims[1]-vlims[0])/10*i for i in range(11)]
                 contour_args['levels'] = calc_levels(vlims[0], vlims[1])
             contours = gv.operation.contours(mesh, **contour_args).opts(**self.hvopts)
             self._contours = contours
